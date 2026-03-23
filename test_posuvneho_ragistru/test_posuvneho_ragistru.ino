@@ -7,7 +7,7 @@ void setup() {
   pinMode(latchPin, OUTPUT);
   pinMode(clockPin, OUTPUT);
     digitalWrite(latchPin, LOW);
-  shiftOut(dataPin, clockPin, MSBFIRST, 0b01001111);
+  shiftOut(dataPin, clockPin, MSBFIRST, 0b01100110);
   digitalWrite(latchPin, HIGH);
 }
 
