@@ -1,107 +1,86 @@
-const int dataPin = 11;
-const int latchPin = 12;
-const int clockPin = 13;
-const int button1Pin = 2; // Pin pro tlačítko
-const int button2Pin = 4; // Pin pro tlačítko
-const int button3Pin = 6; // Pin pro tlačítko
+#include <MojeNastaveni.h>
 
-int pocitadlo = 0;       // Tady si pamatujeme aktuální číslo
-bool button1PosledniStav = HIGH; // Pro detekci změny stisku
-bool button2PosledniStav = HIGH; // Pro detekci změny stisku
-bool button3PosledniStav = HIGH; // Pro detekci změny stisku
+Segmentovka displej(11, 12, 13);
 
-byte cifry[] = {
-  0b00111111, // 0
-  0b00000110, // 1
-  0b01011011, // 2
-  0b01001111, // 3
-  0b01100110, // 4
-  0b01101101, // 5
-  0b01111101, // 6
-  0b00000111, // 7
-  0b01111111, // 8
-  0b01101111  // 9
-};
+const int button1Pin = 2; // Kostka
+const int button2Pin = 4; // Odpočet
+const int button3Pin = 6; // Reset
+
+int pocitadlo = 0;
+bool button1PosledniStav = HIGH;
+bool button2PosledniStav = HIGH;
+bool button3PosledniStav = HIGH;
+
+// PROMĚNNÉ PRO ODPOČET (To je ten náš známý systém)
+bool odpocetBezi = false;
+int zbyvajiciCas = 9;
+unsigned long predchoziCas = 0;
+const long interval = 1000; // 1 sekunda
 
 void setup() {
-  pinMode(dataPin, OUTPUT);
-  pinMode(latchPin, OUTPUT);
-  pinMode(clockPin, OUTPUT);
+  displej.nastavit(); 
   
- 
-  pinMode(button1Pin, INPUT_PULLUP);  // Aktivujeme vnitřní odpor (tlačítko spíná proti zemi)
-  pinMode(button2Pin, INPUT_PULLUP);  // Aktivujeme vnitřní odpor (tlačítko spíná proti zemi)
-  pinMode(button3Pin, INPUT_PULLUP);  // Aktivujeme vnitřní odpor (tlačítko spíná proti zemi)
+  pinMode(button1Pin, INPUT_PULLUP);
+  pinMode(button2Pin, INPUT_PULLUP);
+  pinMode(button3Pin, INPUT_PULLUP);
 
-  // Na začátku ukážeme nulu
-  aktualizujDisplej(cifry[pocitadlo]);
-}
-
-void aktualizujDisplej(byte data) {
-  digitalWrite(latchPin, LOW);
-  shiftOut(dataPin, clockPin, MSBFIRST, data);
-  digitalWrite(latchPin, HIGH);
+  displej.ukazCislo(0); // Úvodní nula
 }
 
 void loop() {
+  unsigned long aktualniCas = millis(); // Načteme aktuální čas pro odpočet
 
-  bool button1Stav = digitalRead(button1Pin); // Detekce hrany: Tlačítko bylo právě stisknuto (přechod z HIGH na LOW) 
-  bool button2Stav = digitalRead(button2Pin); // Detekce hrany: Tlačítko bylo právě stisknuto (přechod z HIGH na LOW) 
-  bool button3Stav = digitalRead(button3Pin); // Detekce hrany: Tlačítko bylo právě stisknuto (přechod z HIGH na LOW) 
+  bool b1Stav = digitalRead(button1Pin);
+  bool b2Stav = digitalRead(button2Pin);
+  bool b3Stav = digitalRead(button3Pin);
 
-
-// ----------------button 1-------------------------------------------------------------------------------
-  if (button1Stav == LOW && button1PosledniStav == HIGH) {
-
-  
-for (int j = 0; j < 3; j++) {
-
-  for (int i = 0; i < 6; i++) {
-    digitalWrite(latchPin, LOW); // 1. Odemknout zápis
-    shiftOut(dataPin, clockPin, MSBFIRST, (1 << i));  // 2. Poslat data (rozsvítí i-tou LED) 
-    digitalWrite(latchPin, HIGH);  // 3. Zamknout a zobrazit 
-    delay(50);
-  }
-   }
-    pocitadlo = random(1,7);
-    aktualizujDisplej(cifry[pocitadlo]); 
-
-    delay(200); // Jednoduchý debouncing (počkáme, až se kontakty uklidní)
-  }
-
-// ----------------button 2-------------------------------------------------------------------------------
-
-    if (button2Stav == LOW && button2PosledniStav == HIGH) {
-
-    pocitadlo = 0;
-    aktualizujDisplej(cifry[pocitadlo]);  
-
-
-    delay(200); // Jednoduchý debouncing (počkáme, až se kontakty uklidní)
-  }
-
-// ----------------button 3-------------------------------------------------------------------------------
-
-    if (button3Stav == LOW && button3PosledniStav == HIGH) {
-
-
-  for (int i = 0; i < 6; i++) {
+  // --- TLAČÍTKO 1: KOSTKA ---
+  if (b1Stav == LOW && button1PosledniStav == HIGH) {
+    odpocetBezi = false; // Pokud běžel odpočet, stiskem kostky ho zrušíme
     
-    digitalWrite(latchPin, LOW); // 1. Odemknout zápis
-    shiftOut(dataPin, clockPin, MSBFIRST, (1 << i));  // 2. Poslat data (rozsvítí i-tou LED) 
-    digitalWrite(latchPin, HIGH);  // 3. Zamknout a zobrazit
-    
+    displej.krouzeni(3, 50); // Tvůj efekt z knihovny
+    pocitadlo = random(1, 7); 
+    displej.ukazCislo(pocitadlo); 
     delay(200);
   }
 
-
-
-    delay(200); // Jednoduchý debouncing (počkáme, až se kontakty uklidní)
+  // --- TLAČÍTKO 2: ODPOČET ---
+  if (b2Stav == LOW && button2PosledniStav == HIGH) {
+    odpocetBezi = true;
+    zbyvajiciCas = 9;
+    predchoziCas = aktualniCas; // Vynulujeme stopky pro první sekundu
+    
+    displej.ukazCislo(zbyvajiciCas); 
+    delay(200); 
   }
 
-// ------------------------------------------------------------------------------------------------------
+  // --- TLAČÍTKO 3: RESET ---
+  if (b3Stav == LOW && button3PosledniStav == HIGH) {
+    odpocetBezi = false; // Zastavíme běžící odpočet
+    pocitadlo = 0;
+    displej.ukazCislo(pocitadlo); 
+    delay(200);
+  }
 
-  button1PosledniStav = button1Stav;
-  button2PosledniStav = button2Stav;
-  button3PosledniStav = button3Stav;
+  // --- LOGIKA SAMOTNÉHO ODPOČTU ---
+  // Tento kód běží neustále na pozadí, ale "střílí" jen když je odpocetBezi = true
+  if (odpocetBezi) {
+    if (aktualniCas - predchoziCas >= interval) {
+      predchoziCas = aktualniCas; // Restartujeme stopky pro další sekundu
+      zbyvajiciCas--;
+
+      if (zbyvajiciCas >= 0) {
+        displej.ukazCislo(zbyvajiciCas);
+      } else {
+        // Tady odpočet došel na nulu
+        odpocetBezi = false;
+        displej.krouzeni(2, 30); // Na konci odpočtu uděláme efekt kroužení jako alarm!
+        displej.ukazCislo(0);
+      }
+    }
+  }
+
+  button1PosledniStav = b1Stav;
+  button2PosledniStav = b2Stav;
+  button3PosledniStav = b3Stav;
 }
