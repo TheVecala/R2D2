@@ -1,3 +1,5 @@
+
+// Sem vlož své: const uint16_t soundData[59994] PROGMEM = { ... };
 // Sample Rate: 8000 Hz
 const uint16_t soundData[59994] PROGMEM = {
   4080, 4080, 32, 0, 4064, 4080, 16, 0, 0, 0, 4080, 4080, 
@@ -5001,3 +5003,21 @@ const uint16_t soundData[59994] PROGMEM = {
   0, 0, 0, 0, 4080, 4080, 32, 0, 4048, 4080, 48, 0, 
   4064, 4080, 16, 0, 0, 0, 
 };
+
+void setup() {
+  analogWriteResolution(12); // Nastavíme DAC na 12 bitů (0-4095)
+}
+
+void loop() {
+  for (int i = 0; i < 59994; i++) {
+    // Tvá data jsou 16bit (0-65535), ale DAC umí 12bit (0-4095)
+    // Proto posuneme bity o 4 doprava (vydělíme 16)
+    analogWrite(A0, soundData[i] >> 1); 
+    
+    // Tady je kritické místo - rychlost! 
+    // Pokud je zvuk moc rychlý/pomalý, změň toto číslo:
+    delayMicroseconds(45); // 125 us odpovídá 8000 Hz (častý sample rate)
+  }
+  
+  delay(3000); // Pauza 3 sekundy před dalším přehráním
+}
