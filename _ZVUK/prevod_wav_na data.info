@@ -1,0 +1,29 @@
+Postup v Google Colab:
+
+    Otevři colab.research.google.com.
+
+    Klikni na "New Notebook" (Nový zápisník).
+
+    Do buňky vlož kód níže.
+
+    Vlevo klikni na ikonu složky a nahraj (Upload) svůj .wav soubor.
+
+    Spusť buňku (tlačítko Play).
+
+    Až skript doběhne, vlevo ve složce se objeví soubor data.h. Ten si stáhni nebo otevři.
+
+Na co si dát pozor:
+
+    Název souboru: Musí se přesně shodovat (včetně velkých písmen). Pokud se tvůj soubor jmenuje zvuk1.wav, přepiš to v kódu na řádku vstupni_soubor = "zvuk1.wav".
+
+    Formát WAV: Pokud by ti Colab vyhodil chybu u struct.unpack, znamená to, že tvůj WAV není 16bitový (může být 24bit nebo 32bit). V tom případě ho musíš v Audacity znovu vyexportovat jako WAV (Microsoft) signed 16-bit PCM.
+
+Až to budeš mít, ten stažený soubor data.h můžeš v Arduino IDE prostě otevřít na nové kartě nebo jeho obsah zkopírovat přímo nad svůj kód.
+
+
+Úspěšně převedeno! babicka.wav novým kodem python
+Počet vzorků: 251786
+Doporučený delayMicroseconds: 20
+Soubor 'data.h' je připraven ke stažení.
+
+soubor s e nevejde je potřeba ho zmenšit
